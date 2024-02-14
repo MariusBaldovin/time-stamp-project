@@ -1,20 +1,15 @@
-// index.js
-// where your node app starts
+const express = require("express");
+const app = express();
 
-// init project
-var express = require("express");
-var app = express();
+// Middleware for enabling CORS
+const cors = require("cors");
+app.use(cors({ optionsSuccessStatus: 200 }));
 
-// enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-// so that your API is remotely testable by FCC
-var cors = require("cors");
-app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
-
-// http://expressjs.com/en/starter/static-files.html
+// Middleware for serving static files
 app.use(express.static("public"));
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+// Route handler for "/"
+app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
@@ -29,13 +24,15 @@ app.get("/api/:date?", (req, res) => {
     let utcTime = currentDate.toUTCString();
     res.json({ unix: unixTime, utc: utcTime });
   } else {
-    // Parse the provided date string
-    let parsedDate = new Date(date);
+    // Parse the provided date string or timestamp
+    let parsedDate = isNaN(date) ? new Date(date) : new Date(parseInt(date));
 
+    // Check if the parsed date is valid
     if (!isNaN(parsedDate.getTime())) {
       // If the parsed date is valid, return UTC format
       let utcDate = parsedDate.toUTCString();
-      res.json({ unix: parsedDate.getTime(), utc: utcDate });
+      let unixTime = parsedDate.getTime();
+      res.json({ unix: unixTime, utc: utcDate });
     } else {
       // If the parsed date is invalid, return error message
       res.json({ error: "Invalid Date" });
@@ -67,12 +64,13 @@ app.get("/api/:date", (req, res) => {
   }
 });
 
-// your first API endpoint...
-app.get("/api/hello", function (req, res) {
+// Route handler for "/api/hello"
+app.get("/api/hello", (req, res) => {
   res.json({ greeting: "hello API" });
 });
 
 // Listen on port set in environment variable or default to 3000
-var listener = app.listen(process.env.PORT || 3000, function () {
-  console.log("Your app is listening on port " + listener.address().port);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log("Your app is listening on port " + port);
 });
